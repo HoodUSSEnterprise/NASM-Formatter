@@ -1,0 +1,116 @@
+{
+  "name": "nasm-formatter",
+  "displayName": "NASM Formatter",
+  "description": "A professional NASM assembly language formatter for VS Code",
+  "version": "1.0.0",
+  "publisher": "HoodUSSEnterprise",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/nasm-formatter"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:nasm"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "nasm",
+        "aliases": [
+          "NASM",
+          "nasm assembly",
+          "assembly"
+        ],
+        "extensions": [
+          ".asm",
+          ".nasm",
+          ".s"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nasm",
+        "scopeName": "source.nasm",
+        "path": "./syntaxes/nasm.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "NASM Formatter",
+      "properties": {
+        "nasmFormatter.indentSize": {
+          "type": "number",
+          "default": 4,
+          "description": "缩进大小（空格数）"
+        },
+        "nasmFormatter.alignComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否对齐注释到指定列"
+        },
+        "nasmFormatter.commentColumn": {
+          "type": "number",
+          "default": 40,
+          "description": "注释对齐的目标列号"
+        },
+        "nasmFormatter.keepLabelIndent": {
+          "type": "boolean",
+          "default": true,
+          "description": "是否保留标签的原始缩进"
+        },
+        "nasmFormatter.blankLineBeforeLabel": {
+          "type": "boolean",
+          "default": true,
+          "description": "在标签前自动添加空行"
+        },
+        "nasmFormatter.spaceAfterComma": {
+          "type": "boolean",
+          "default": true,
+          "description": "逗号后添加空格"
+        },
+        "nasmFormatter.spaceInsideAddress": {
+          "type": "boolean",
+          "default": true,
+          "description": "地址表达式中操作符前后添加空格"
+        },
+        "nasmFormatter.removeExtraBlankLines": {
+          "type": "boolean",
+          "default": true,
+          "description": "删除多余连续空行（保留一个）"
+        },
+        "nasmFormatter.uppercaseInstruction": {
+          "type": "boolean",
+          "default": false,
+          "description": "将指令转为大写"
+        },
+        "nasmFormatter.lowercaseInstruction": {
+          "type": "boolean",
+          "default": false,
+          "description": "将指令转为小写"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "npx @vscode/vsce package",
+    "publish": "npx @vscode/vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  },
+  "icon": "images/icon.png"
+}

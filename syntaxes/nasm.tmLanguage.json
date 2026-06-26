@@ -1,0 +1,147 @@
+{
+  "scopeName": "source.nasm",
+  "name": "NASM",
+  "fileTypes": ["asm", "nasm", "s"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#preprocessor" },
+    { "include": "#labels" },
+    { "include": "#directives" },
+    { "include": "#instructions" },
+    { "include": "#registers" },
+    { "include": "#sizeSpecifiers" },
+    { "include": "#numbers" },
+    { "include": "#operators" },
+    { "include": "#brackets" },
+    { "include": "#separators" }
+  ],
+  "repository": {
+    "comments": {
+      "name": "comment.line.semicolon.nasm",
+      "match": ";.*$"
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.nasm",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.nasm",
+              "match": "''"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.double.nasm",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.nasm",
+              "match": "\"\""
+            }
+          ]
+        }
+      ]
+    },
+    "preprocessor": {
+      "patterns": [
+        {
+          "name": "keyword.preprocessor.nasm",
+          "match": "^\\s*(%define|%xdefine|%ixdefine|%undef|%assign|%iassign|%strlen|%strcat|%substr|%macro|%endmacro|%imacro|%ifdef|%ifndef|%ifidn|%ifnidn|%ifidni|%ifnidni|%ifid|%ifnid|%ifnum|%ifnnum|%ifstr|%ifnstr|%iftoken|%ifntoken|%ifctx|%ifnctx|%elifdef|%elifndef|%elifidn|%elifnidn|%elifidni|%elifnidni|%elifid|%elifnid|%elifnum|%elifnnum|%elifstr|%elifnstr|%eliftoken|%elifntoken|%elifctx|%elifnctx|%else|%endif|%include|%push|%pop|%repl|%error|%warning|%fatal|%line|%pathsearch|%depend|%use|%arg|%stacksize|%local|%endrep|%rep|%exitrep)\\b"
+        },
+        {
+          "name": "entity.name.label.nasm",
+          "match": "%%[a-zA-Z_][a-zA-Z0-9_]*"
+        },
+        {
+          "name": "keyword.operator.nasm",
+          "match": "%+%|%"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "name": "entity.name.label.nasm",
+          "match": "^\\s*([a-zA-Z_?.@][a-zA-Z0-9_$.?#@]*)\\s*(?=:)"
+        },
+        {
+          "name": "entity.name.label.nasm",
+          "match": "^\\s*(\\.\\.@|[a-zA-Z_?.@][a-zA-Z0-9_$.?#@]*\\.[a-zA-Z0-9_$.?#@]+)\\s*(?=:)"
+        },
+        {
+          "name": "entity.name.label.nasm",
+          "match": "^\\s*(@@)\\s*(?=:)"
+        },
+        {
+          "name": "entity.name.label.nasm",
+          "match": "@[bf](?![a-zA-Z0-9_])"
+        }
+      ]
+    },
+    "directives": {
+      "name": "keyword.directive.nasm",
+      "match": "\\b(section|segment|global|static|extern|common|export|import|default|bits|cpu|org|align|alignb|incbin|struc|endstruc|istruc|at|iend|macro|endmacro|dw|dw|dd|dd|dq|dq|dt|do|dy|db|resb|resw|resd|resq|rest|resd|resy|resb|equ|times|absolute|extern|global|common|cpu|default|family)\\b"
+    },
+    "instructions": {
+      "patterns": [
+        {
+          "name": "support.function.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])AAA|AAD|AAM|AAS|ADC|ADD|AND|ARPL|BOUND|BSF|BSR|BSWAP|BT|BTC|BTR|BTS|CALL|CBW|CDQ|CDQE|CLC|CLD|CLI|CLTS|CMC|CMP|CMPSB|CMPSD|CMPSQ|CMPSW|CMPXCHG|CMPXCHG486|CMPXCHG8B|CMPXCHG16B|CPUID|CQO|CWD|CWDE|DAA|DAS|DEC|DIV|ENTER|FABS|FADD|FADDP|FIADD|FBLD|FBSTP|FCHS|FCLEX|FCMOVB|FCMOVBE|FCMOVE|FCMOVNB|FCMOVNBE|FCMOVNE|FCMOVNU|FCMOVU|FCOM|FCOMI|FCOMIP|FCOMP|FCOMPP|FCOS|FDECSTP|FDISI|FDIV|FDIVP|FDIVR|FDIVRP|FENI|FFREE|FFREEP|FIADD|FICOM|FICOMP|FIDIV|FIDIVR|FILD|FIMUL|FINCSTP|FINIT|FIST|FISTP|FISTTP|FLD|FLD1|FLDCW|FLDENV|FLDL2E|FLDL2T|FLDLG2|FLDLN2|FLDPI|FLDZ|FMUL|FMULP|FNCLEX|FNDISI|FNENI|FNINIT|FNOP|FNSAVE|FNSTCW|FNSTENV|FNSTSW|FPATAN|FPREM|FPREM1|FPTAN|FRNDINT|FRSTOR|FSAVE|FSCALE|FSETPM|FSIN|FSINCOS|FSQRT|FST|FSTCW|FSTENV|FSTP|FSTSW|FSUB|FSUBP|FSUBR|FSUBRP|FTST|FUCOM|FUCOMI|FUCOMIP|FUCOMP|FUCOMPP|FWAIT|FXAM|FXCH|FXRSTOR|FXSAVE|FXTRACT|FYL2X|FYL2XP1|HLT|IBTS|IDIV|IMUL|IN|INC|INSB|INSD|INSW|INT|INTO|INVD|INVLPG|INVPCID|IRET|IRETD|IRETQ|IRETW|JA|JAE|JB|JBE|JC|JCXZ|JECXZ|JRCXZ|JE|JG|JGE|JL|JLE|JMP|JNA|JNAE|JNB|JNBE|JNC|JNE|JNG|JNGE|JNL|JNLE|JNO|JNP|JNS|JNZ|JO|JP|JPE|JPO|JS|JZ|LAHF|LAR|LDS|LEA|LEAVE|LES|LFENCE|LFS|LGDT|LGS|LIDT|LLDT|LMSW|LOADALL|LOADALL286|LODSB|LODSD|LODSQ|LODSW|LOOP|LOOPE|LOOPNE|LOOPNZ|LOOPZ|LSL|LSS|LTR|MFENCE|MOV|MOVD|MOVQ|MOVSB|MOVSD|MOVSQ|MOVSW|MOVSX|MOVSXD|MOVZX|MUL|MWAIT|NEG|NOP|NOT|OR|OUT|OUTSB|OUTSD|OUTSW|PACKSSDW|PACKSSWB|PACKUSWB|PADDB|PADDD|PADDSB|PADDSW|PADDUSB|PADDUSW|PADDW|PAND|PANDN|PAVGB|PAVGW|PCMPEQB|PCMPEQD|PCMPEQW|PCMPGTB|PCMPGTD|PCMPGTW|PEXTRW|PF2ID|PF2IW|PFACC|PFADD|PFCMPEQ|PFCMPGE|PFCMPGT|PFMAX|PFMIN|PFMUL|PFRCP|PFRCPIT1|PFRCPIT2|PFRSQIT1|PFRSQRT|PFSUB|PFSUBR|PINSRW|PMADDWD|PMAXSW|PMAXUB|PMINSW|PMINUB|PMOVMSKB|PMULHRW|PMULHUW|PMULHW|PMULLW|POP|POPA|POPAD|POPAW|POPF|POPFD|POPFQ|POPFW|POR|PREFETCH|PREFETCHW|PSADBW|PSHUFW|PSLLD|PSLLQ|PSLLW|PSRAD|PSRAW|PSRLD|PSRLQ|PSRLW|PSUBB|PSUBD|PSUBSB|PSUBSW|PSUBUSB|PSUBUSW|PSUBW|PUNPCKHBW|PUNPCKHDQ|PUNPCKHWD|PUNPCKLBW|PUNPCKLDQ|PUNPCKLWD|PUSH|PUSHA|PUSHAD|PUSHAW|PUSHF|PUSHFD|PUSHFQ|PUSHFW|PXOR|RCL|RCR|RDMSR|RDPMC|RDRAND|RDSEED|RDTSC|RDTSCP|RET|RETF|RETN|ROL|ROR|RSM|RSDC|RSLDT|RSTS|SAHF|SAL|SALC|SAR|SARL|SARD|SARW|SBB|SCASB|SCASD|SCASQ|SCASW|SFENCE|SGDT|SHL|SHLD|SHR|SHRD|SIDT|SLDT|SMI|SMINT|SMINTOLD|SMSW|STC|STD|STI|STMXCSR|STOSB|STOSD|STOSQ|STOSW|STR|SUB|SUBC|SYSCALL|SYSENTER|SYSEXIT|SYSRET|TEST|UD0|UD1|UD2|VERR|VERW|VMCALL|VMCLEAR|VMONITOR|VMPTRLD|VMPTRST|VMREAD|VMRESUME|VMWRITE|VMXOFF|VMXON|WAIT|WBINVD|WRMSR|XADD|XBTS|XCHG|XLATB|XLAT|XOR|XSAVE|XSAVEOPT|XSAVEC|XSAVES|XRSTOR|XSTORS|ADDPS|ADDSS|ADDSD|ADDSUBPS|ADDSUBPD|ANDPS|ANDNPS|CMPPS|CMPSS|CMPSD|CMPPD|COMISS|COMISD|CVTPI2PS|CVTSI2SS|CVTSI2SD|CVTPS2PI|CVTSS2SI|CVTSD2SI|CVTTPS2PI|CVTTSS2SI|CVTTSD2SI|DIVPS|DIVSS|DIVSD|LDMXCSR|MAXPS|MAXSS|MAXSD|MINPS|MINSS|MINSD|MOVAPS|MOVSS|MOVSD|MOVUPS|MOVHPS|MOVHLPS|MOVLPS|MOVLHPS|MOVMSKPS|MOVMSKPD|MULPS|MULSS|MULSD|ORPS|RCPPS|RCPSS|RSQRTPS|RSQRTSS|SHUFPS|SQRTPS|SQRTSS|SQRTSD|STMXCSR|SUBPS|SUBSS|SUBSD|UCOMISS|UCOMISD|UNPCKHPS|UNPCKLPS|UNPCKHPD|UNPCKLPD|XORPS|PABSB|PABSW|PABSD|PALIGNR|PHADDD|PHADDSW|PHADDW|PHSUBD|PHSUBSW|PHSUBW|PMADDUBSW|PMULHRSW|PSHUFB|PSIGNB|PSIGNW|PSIGND|BLENDPS|BLENDPD|BLENDVPS|BLENDVPD|DPPS|DPPD|EXTRACTPS|INSERTPS|MOVNTDQA|MPSADBW|PACKUSDW|PBLENDVB|PBLENDW|PCMEQQ|PCMPGTQ|PEXTRB|PEXTRD|PEXTRQ|PMINSB|PMINSD|PMINUD|PMINUW|PMODEB|PMOVSXBD|PMOVSXBQ|PMOVSXBW|PMOVSXDQ|PMOVSXWD|PMOVSXWQ|PMOVZXBD|PMOVZXBQ|PMOVZXBW|PMOVZXDQ|PMOVZXWD|PMOVZXWQ|PMULDQ|PMULUDQ|POPCNT|ROUNDPS|ROUNDPD|ROUNDSS|ROUNDSD|CRC32|AESENC|AESENCLAST|AESDEC|AESDECLAST|AESIMC|AESKEYGENASSIST|PCLMULQDQ|RDFSBASE|RDGSBASE|WRFSBASE|WRGSBASE|VCVTSS2SD|VCVTSD2SS|VMOVD|VMOVQ|VMOVAPS|VMOVUPS|VMOVSS|VMOVSD|VADDSD|VADDSS|VADDPS|VADDPD|VSUBSS|VSUBSD|VSUBPS|VSUBPD|VMULSS|VMULSD|VMULPS|VMULPD|VDIVSS|VDIVSD|VDIVPS|VDIVPD|VFMADD132PS|VFMADD213PS|VFMADD231PS|VFMADD132PD|VFMADD213PD|VFMADD231PD|VFMADD132SS|VFMADD213SS|VFMADD231SS|VFMADD132SD|VFMADD213SD|VFMADD231SD|VFMSUB132PS|VFMSUB213PS|VFMSUB231PS|VFMSUB132PD|VFMSUB213PD|VFMSUB231PD|VFMSUB132SS|VFMSUB213SS|VFMSUB231SS|VFMSUB132SD|VFMSUB213SD|VFMSUB231SD|VFMADDSUB132PS|VFMADDSUB213PS|VFMADDSUB231PS|VFMADDSUB132PD|VFMADDSUB213PD|VFMADDSUB231PD|VFMSUBADD132PS|VFMSUBADD213PS|VFMSUBADD231PS|VFMSUBADD132PD|VFMSUBADD213PD|VFMSUBADD231PD|VCMPSS|VCMPSD|VCMPPS|VCMPPD|VCOMISS|VCOMISD|VUCOMISS|VUCOMISD|VMOVMSKPS|VMOVMSKPD|VSQRTSS|VSQRTSD|VSQRTPS|VSQRTPD|VMAXSS|VMAXSD|VMAXPS|VMAXPD|VMINSS|VMINSB|VMINPS|VMINPD|VBROADCASTSS|VBROADCASTSD|VBROADCASTF128|VINSERTF128|VEXTRACTF128|VPERMILPS|VPERMILPD|VPERM2F128|VMASKMOVPS|VMASKMOVPD|VGATHERDPD|VGATHERQPD|VGATHERDPS|VGATHERQPS|VPGATHERDD|VPGATHERDQ|VPGATHERQD|VPGATHERQQ|VPBROADCASTB|VPBROADCASTW|VPBROADCASTD|VPBROADCASTQ|VPABSB|VPABSW|VPABSD|VPABSQ|VPALIGNR|PABSQ|VPHADDD|VPHADDSW|VPHADDW|VPHSUBD|VPHSUBSW|VPHSUBW|VPMADDUBSW|VPMULHRSW|VPSHUFB|VPSIGNB|VPSIGNW|VPSIGND|VBLENDPS|VBLENDPD|VBLENDVPS|VBLENDVPD|VDPPS|VDPPD|VEXTRACTPS|VINSERTPS|VMOVNTDQA|VMPSADBW|VPACKUSDW|VPBLENDVB|VPBLENDW|VPCMEQQ|VPCMPGTQ|VPEXTRB|VPEXTRD|VPEXTRQ|VPINSRB|VPINSRD|VPINSRQ|VPMINSB|VPMINSD|VPMINUD|VPMINUW|VPMODEB|VPMOVSXBD|VPMOVSXBQ|VPMOVSXBW|VPMOVSXDQ|VPMOVSXWD|VPMOVSXWQ|VPMOVZXBD|VPMOVZXBQ|VPMOVZXBW|VPMOVZXDQ|VPMOVZXWD|VPMOVZXWQ|VPMULDQ|VPMULUDQ|VPCMPEQB|VPCMPEQD|VPCMPEQQ|VPCMPEQW|VPCMPGTB|VPCMPGTD|VPCMPGTW|VPMAXSB|VPMAXSD|VPMAXSW|VPMAXUB|VPMAXUD|VPMAXUW|VPMINSB|VPMINSD|VPMINSW|VPMINUB|VPMINUD|VPMINUW|VPMOVMSKB|VPMULHUW|VPMULHW|VPMULLW|VPMULLD|VPSADBW|VPSLLD|VPSLLDQ|VPSLLQ|VPSLLW|VPSRAD|VPSRAW|VPSRLD|VPSRLDQ|VPSRLQ|VPSRLW|VPSUBB|VPSUBD|VPSUBQ|VPSUBSB|VPSUBSW|VPSUBUSB|VPSUBUSW|VPSUBW|VPUNPCKHBW|VPUNPCKHDQ|VPUNPCKHQDQ|VPUNPCKHWD|VPUNPCKLBW|VPUNPCKLDQ|VPUNPCKLQDQ|VPUNPCKLWD|VSHUFPS|VSHUFPD|VANDPD|ANDPS|VANDNPD|VANDNPS|VORPD|VORPS|VXORPD|VXORPS|VRCPSS|VRSQRTSS|VFIXUPIMMSS|VRANGEPS|VRANGEPD|VRANGESS|VRANGESD|VREDUCEPS|VREDUCEPD|VREDUCESS|VREDUCESD|VGETEXPPS|VGETEXPPD|VGETEXPSS|VGETEXPSD|VGETMANTPS|VGETMANTPD|VGETMANTSS|VGETMANTSD|VSCALEFPS|VSCALEFPD|VSCALEFSS|VSCALEFSD|VEXP2PS|VEXP2PD|VRCP28PS|VRCP28PD|VRCP28SS|VRCP28SD|VRSQRT28PS|VRSQRT28PD|VRSQRT28SS|VRSQRT28SD|VGATHERPF0DPS|VGATHERPF0QPS|VGATHERPF0DPD|VGATHERPF0QPD|VGATHERPF1DPS|VGATHERPF1QPS|VGATHERPF1DPD|VGATHERPF1QPD|VSCATTERPF0DPS|VSCATTERPF0QPS|VSCATTERPF0DPD|VSCATTERPF0QPD|VSCATTERPF1DPS|VSCATTERPF1QPS|VSCATTERPF1DPD|VSCATTERPF1QPD|FPREM|FNCLEX|FNINIT|FNSAVE|FNSTCW|FNSTSW|FPATAN|FPREM|FPTAN|FRNDINT|FSCALE|FSETPM|FSIN|FSINCOS|FSQRT|FTST|FXAM|FXCH|FYL2X|FYL2XP1|SETO|SETNO|SETB|SETNB|SETC|SETNC|SETAE|SETNAE|SETE|SETNE|SETBE|SETNBE|SETA|SETNA|SETS|SETNS|SETP|SETNP|SETPE|SETPO|SETL|SETNL|SETGE|SETNGE|SETLE|SETNLE|CMOVO|CMOVNO|CMOVB|CMOVNB|CMOVC|CMOVNC|CMOVAE|CMOVNAE|CMOVE|CMOVNE|CMOVBE|CMOVNBE|CMOVA|CMOVNA|CMOVS|CMOVNS|CMOVP|CMOVNP|CMOVPE|CMOVPO|CMOVL|CMOVNL|CMOVGE|CMOVNGE|CMOVLE|CMOVNLE)(?![a-zA-Z0-9_.$])"
+        }
+      ]
+    },
+    "registers": {
+      "name": "variable.language.nasm",
+      "match": "(?<![a-zA-Z0-9_.$])(%[a-z]+\\s+)?(eax|ebx|ecx|edx|esi|edi|ebp|esp|eip|rax|rbx|rcx|rdx|rsi|rdi|rbp|rsp|rip|r8|r9|r10|r11|r12|r13|r14|r15|r8d|r9d|r10d|r11d|r12d|r13d|r14d|r15d|r8w|r9w|r10w|r11w|r12w|r13w|r14w|r15w|r8b|r9b|r10b|r11b|r12b|r13b|r14b|r15b|ax|bx|cx|dx|si|di|bp|sp|ah|al|bh|bl|ch|cl|dh|dl|spl|bpl|sil|dil|cr0|cr1|cr2|cr3|cr4|cr8|dr0|dr1|dr2|dr3|dr6|dr7|tr0|tr1|tr2|tr3|tr4|tr5|tr6|tr7|st0|st1|st2|st3|st4|st5|st6|st7|mm0|mm1|mm2|mm3|mm4|mm5|mm6|mm7|xmm0|xmm1|xmm2|xmm3|xmm4|xmm5|xmm6|xmm7|xmm8|xmm9|xmm10|xmm11|xmm12|xmm13|xmm14|xmm15|ymm0|ymm1|ymm2|ymm3|ymm4|ymm5|ymm6|ymm7|ymm8|ymm9|ymm10|ymm11|ymm12|ymm13|ymm14|ymm15|zmm0|zmm1|zmm2|zmm3|zmm4|zmm5|zmm6|zmm7|zmm8|zmm9|zmm10|zmm11|zmm12|zmm13|zmm14|zmm15|cs|ds|es|fs|gs|ss|fs.base|gs.base)(?![a-zA-Z0-9_.$])"
+    },
+    "sizeSpecifiers": {
+      "name": "storage.type.nasm",
+      "match": "\\b(byte|word|dword|qword|tword|oword|yword|zword|ptr|far|near)\\b"
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])(0[xX][0-9a-fA-F]+|[0-9]+[hH])(?![a-zA-Z0-9_.$])"
+        },
+        {
+          "name": "constant.numeric.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])(0[oO][0-7]+|[0-7]+[oOqQ])(?![a-zA-Z0-9_.$])"
+        },
+        {
+          "name": "constant.numeric.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])(0[bB][01]+|[01]+[bB])(?![a-zA-Z0-9_.$])"
+        },
+        {
+          "name": "constant.numeric.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])([0-9]+[dD]|[0-9]+)(?![a-zA-Z0-9_.$])"
+        },
+        {
+          "name": "constant.numeric.nasm",
+          "match": "(?<![a-zA-Z0-9_.$])(\\$\\$|\\$)(?![a-zA-Z0-9_.$])"
+        }
+      ]
+    },
+    "operators": {
+      "name": "keyword.operator.nasm",
+      "match": "[+\\-*/%&|^~<>!]|<<|>>|//|&&|\\|\\||\\^\\^|==|!=|<=|>=|\\|\\||&&|\\^\\^|<<|>>|//|%%"
+    },
+    "brackets": {
+      "patterns": [
+        { "name": "punctuation.section.bracket.nasm", "match": "\\[" },
+        { "name": "punctuation.section.bracket.nasm", "match": "\\]" },
+        { "name": "punctuation.section.parens.nasm", "match": "\\(" },
+        { "name": "punctuation.section.parens.nasm", "match": "\\)" }
+      ]
+    },
+    "separators": {
+      "name": "punctuation.separator.nasm",
+      "match": ",|:"
+    }
+  }
+}
