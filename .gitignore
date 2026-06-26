@@ -3,6 +3,7 @@ out/
 *.vsix
 .vscode-test/
 dist/
+.vscode/settings.json
 *.log
 .DS_Store
 Thumbs.db
