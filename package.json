@@ -1,6 +1,6 @@
 {
-  "name": "nasm-formatter",
-  "displayName": "NASM Formatter",
+  "name": "nasm-format",
+  "displayName": "NASM-Formatter",
   "description": "A professional NASM assembly language formatter for VS Code",
   "version": "1.1.0",
   "publisher": "HoodUSSEnterprise",

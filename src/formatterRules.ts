@@ -178,6 +178,12 @@ export function extractValueTokens(tokens: Token[], dataLabel?: string): Token[]
     // 跳过后续空白
     while (i < tokens.length && tokens[i].type === TokenType.Whitespace) i++;
 
+    // 在 Comment token 处截断，确保注释不会混入值部分（幂等性关键）
+    const commentIdx = tokens.findIndex((t, idx) => idx >= i && t.type === TokenType.Comment);
+    if (commentIdx >= 0) {
+        return tokens.slice(i, commentIdx);
+    }
+
     return tokens.slice(i);
 }
 
