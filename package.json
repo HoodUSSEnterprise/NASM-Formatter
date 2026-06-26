@@ -2,7 +2,7 @@
   "name": "nasm-format",
   "displayName": "NASM-Formatter",
   "description": "A professional NASM assembly language formatter for VS Code",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "HoodUSSEnterprise",
   "license": "MIT",
   "repository": {
