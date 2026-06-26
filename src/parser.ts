@@ -53,6 +53,10 @@ export interface ParsedLine {
     operands?: Token[];
     /** 是否需要在标签前插入空行 */
     needsBlankBefore?: boolean;
+    /** 所属 section 名称（如 '.text', '.data' 等） */
+    sectionName?: string;
+    /** 数据定义行的标签（如 msg db 0 中的 msg） */
+    dataLabel?: string;
 }
 
 /**
@@ -133,10 +137,20 @@ export class NASMParser {
      */
     parse(): ParsedLine[] {
         const lines: ParsedLine[] = [];
+        let currentSection = '';
 
         for (let i = 0; i < this.tokenLines.length; i++) {
             const tokens = this.tokenLines[i];
             const parsedLine = this.parseLine(tokens, i);
+
+            // 更新 section 上下文
+            if (parsedLine.type === LineType.Directive &&
+                (parsedLine.mnemonic === 'section' || parsedLine.mnemonic === 'segment')) {
+                const secName = this.extractSectionName(tokens);
+                if (secName) currentSection = secName;
+            }
+
+            parsedLine.sectionName = currentSection;
             lines.push(parsedLine);
         }
 
@@ -205,6 +219,21 @@ export class NASMParser {
                 originalText,
                 tokens,
                 labelName,
+                commentText,
+                needsBlankBefore: false,
+            };
+        }
+
+        // --- 带标签的数据定义 (msg db 0) ---
+        const labeledData = this.getDataLabeledName(tokens);
+        if (labeledData) {
+            return {
+                type: LineType.Data,
+                originalIndent,
+                originalText,
+                tokens,
+                mnemonic: labeledData.dataName,
+                dataLabel: labeledData.label,
                 commentText,
                 needsBlankBefore: false,
             };
@@ -375,6 +404,50 @@ export class NASMParser {
         const firstWord = this.getFirstWord(tokens);
         if (firstWord && DATA_KEYWORDS.has(firstWord)) {
             return firstWord;
+        }
+        return undefined;
+    }
+
+    /**
+     * 检查是否为带标签的数据定义行（如 msg db 0）
+     *
+     * 检测格式：Word + DataKeyword
+     * 其中第一个单词是数据标签，第二个单词是数据定义伪指令。
+     */
+    private getDataLabeledName(tokens: Token[]): { label: string; dataName: string } | undefined {
+        let i = 0;
+        while (i < tokens.length && tokens[i].type === TokenType.Whitespace) i++;
+        if (i >= tokens.length || tokens[i].type !== TokenType.Word) return undefined;
+        const label = tokens[i].value;
+        i++;
+        while (i < tokens.length && tokens[i].type === TokenType.Whitespace) i++;
+        if (i >= tokens.length || tokens[i].type !== TokenType.Word) return undefined;
+        const dataName = tokens[i].value.toLowerCase();
+        if (DATA_KEYWORDS.has(dataName)) {
+            return { label, dataName };
+        }
+        return undefined;
+    }
+
+    /**
+     * 从 section 伪指令中提取 section 名称
+     *
+     * 支持格式：
+     *   - section .text      → '.text'
+     *   - section .data      → '.data'
+     *   - section "myData"   → '"myData"'
+     */
+    private extractSectionName(tokens: Token[]): string | undefined {
+        let i = 0;
+        while (i < tokens.length && tokens[i].type === TokenType.Whitespace) i++;
+        if (i >= tokens.length || tokens[i].type !== TokenType.Word) return undefined;
+        i++; // 跳过 'section'/'segment'
+        while (i < tokens.length && tokens[i].type === TokenType.Whitespace) i++;
+        if (i < tokens.length) {
+            // section 名称可以是 Word 或 String 类型
+            if (tokens[i].type === TokenType.Word || tokens[i].type === TokenType.String) {
+                return tokens[i].value;
+            }
         }
         return undefined;
     }

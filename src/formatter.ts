@@ -15,6 +15,7 @@ import {
     formatDirectiveLine,
     formatDataLine,
     formatCommentText,
+    formatDataBlock,
     computeIndent,
     assembleLine,
 } from './formatterRules';
@@ -182,8 +183,13 @@ export class NASMFormatter implements vscode.DocumentFormattingEditProvider {
         let hasLabelBefore = false;
         /** 是否处于 section 或 segment 内部 */
         let inSection = false;
+        /** 当前所在的 section 名称 */
+        let currentSection = '';
 
-        for (const line of lines) {
+        let i = 0;
+        while (i < lines.length) {
+            const line = lines[i];
+
             // 更新标签上下文
             if (line.type === LineType.Label && line.labelName) {
                 if (options.keepLabelIndent) {
@@ -195,10 +201,34 @@ export class NASMFormatter implements vscode.DocumentFormattingEditProvider {
                 inSection = false;
             }
 
-            // 检测 section/segment 开始
+            // 检测 section/segment 开始 & 更新 section 上下文
             if (line.type === LineType.Directive &&
                 (line.mnemonic === 'section' || line.mnemonic === 'segment')) {
                 inSection = true;
+                currentSection = line.sectionName || '';
+            }
+
+            // --- 数据节行批处理：列对齐格式化 ---
+            const isDataSection = currentSection === '.data' ||
+                                  currentSection === '.rodata' ||
+                                  currentSection === '.bss';
+
+            if (isDataSection && line.type === LineType.Data) {
+                const dataBlock: ParsedLine[] = [];
+                while (i < lines.length) {
+                    const l = lines[i];
+                    if (l.type === LineType.Data) {
+                        dataBlock.push(l);
+                        i++;
+                    } else {
+                        break;
+                    }
+                }
+                if (dataBlock.length > 0) {
+                    const formatted = formatDataBlock(dataBlock, options);
+                    result.push(...formatted);
+                    continue;
+                }
             }
 
             // 计算缩进
@@ -211,12 +241,14 @@ export class NASMFormatter implements vscode.DocumentFormattingEditProvider {
             switch (line.type) {
                 case LineType.Blank:
                     result.push('');
+                    i++;
                     continue;
 
                 case LineType.Comment:
                     // 注释行：应用缩进并格式化注释文本
                     const formattedComment = formatCommentText(line.commentText || '');
                     result.push(indent + formattedComment);
+                    i++;
                     continue;
 
                 case LineType.Label:
@@ -232,6 +264,7 @@ export class NASMFormatter implements vscode.DocumentFormattingEditProvider {
                     break;
 
                 case LineType.Data:
+                    // 非数据节中的零散数据行（如 .text 中的 db）
                     content = formatDataLine(nonCommentTokens, options);
                     break;
 
@@ -249,6 +282,7 @@ export class NASMFormatter implements vscode.DocumentFormattingEditProvider {
             // 组装完整行（缩进 + 内容 + 注释）
             const formattedLine = assembleLine(indent, content, line.commentText, options);
             result.push(formattedLine);
+            i++;
         }
 
         return result.join('\n') + '\n';

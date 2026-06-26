@@ -19,8 +19,10 @@ export enum TokenType {
     Comment = 'Comment',
     /** 字符串字面量（单引号或双引号括起） */
     String = 'String',
-    /** 数值字面量（十进制、十六进制、八进制、二进制等） */
+    /** 整数数值字面量（十进制、十六进制、八进制、二进制等） */
     Number = 'Number',
+    /** 浮点数/科学计数法数值字面量（1e-6, 2.5, 3.14e+8 等） */
+    NumberLiteral = 'NumberLiteral',
     /** 单词（标识符、指令助记符、寄存器名、标签名等） */
     Word = 'Word',
     /** 操作符（算术、逻辑、移位等） */
@@ -63,6 +65,7 @@ export interface Token {
  *   - 单引号和双引号字符串，支持双写转义（如 'it''s'）
  *   - 多种数值格式：十六进制（0x.../...h）、八进制（0o.../...o/...q）、
  *     二进制（0b.../...b）、十进制
+ *   - 科学计数法（1e-6, 2.5e+8 等）作为完整 NumberLiteral
  *   - 当前地址（$）和节起始（$$）
  *   - 预处理指令（%define、%macro 等）和宏局部标签（%%label）
  *   - 多字符操作符（<<、>>、//、&&、|| 等）
@@ -136,7 +139,6 @@ export class Tokenizer {
                     if (line[i] === quote) {
                         str += quote;
                         i++;
-                        // NASM 字符串转义：双写引号（如 'it''s' 表示 it's）
                         if (i < line.length && line[i] === quote) {
                             str += quote;
                             i++;
@@ -196,7 +198,6 @@ export class Tokenizer {
             if ('+-*/%&|^~<>!='.includes(ch)) {
                 let op = ch;
                 i++;
-                // 多字符操作符
                 if (i < line.length) {
                     const next = line[i];
                     if (
@@ -220,67 +221,62 @@ export class Tokenizer {
                 continue;
             }
 
-            // --- 数值字面量 ---
-            if (isDigit(ch)) {
-                let num = '';
-
-                // 0x/0X 开头：十六进制
-                if (ch === '0' && i + 1 < line.length && (line[i + 1] === 'x' || line[i + 1] === 'X')) {
-                    num = '0x';
-                    i += 2;
-                    while (i < line.length && /[0-9a-fA-F]/.test(line[i])) {
-                        num += line[i];
-                        i++;
-                    }
-                    tokens.push({ type: TokenType.Number, value: num });
-                    continue;
-                }
-
-                // 0b/0B 开头：二进制
-                if (ch === '0' && i + 1 < line.length && (line[i + 1] === 'b' || line[i + 1] === 'B')) {
-                    num = '0b';
-                    i += 2;
-                    while (i < line.length && /[01]/.test(line[i])) {
-                        num += line[i];
-                        i++;
-                    }
-                    tokens.push({ type: TokenType.Number, value: num });
-                    continue;
-                }
-
-                // 0o/0O 开头：八进制
-                if (ch === '0' && i + 1 < line.length && (line[i + 1] === 'o' || line[i + 1] === 'O')) {
-                    num = '0o';
-                    i += 2;
-                    while (i < line.length && /[0-7]/.test(line[i])) {
-                        num += line[i];
-                        i++;
-                    }
-                    tokens.push({ type: TokenType.Number, value: num });
-                    continue;
-                }
-
-                // 一般数字（以数字开头）
-                while (i < line.length && isDigit(line[i])) {
-                    num += line[i];
-                    i++;
-                }
-
-                // NASM 的基数后缀：h=十六进制, o/q=八进制, b=二进制, d=十进制
-                if (i < line.length && /[hHoOqQbBdD]/.test(line[i])) {
-                    const suffix = line[i];
-                    if (
-                        (suffix === 'h' || suffix === 'H') ||
-                        (suffix === 'o' || suffix === 'O') ||
-                        (suffix === 'q' || suffix === 'Q') ||
-                        (suffix === 'b' || suffix === 'B') ||
-                        (suffix === 'd' || suffix === 'D')
-                    ) {
-                        num += line[i];
-                        i++;
+            // --- 数值字面量（包括科学计数法） ---
+            if (isDigit(ch) || (ch === '.' && i + 1 < line.length && isDigit(line[i + 1]))) {
+                // 以小数点开头（如 .5）→ 作为 NumberLiteral
+                const startsWithDot = ch === '.';
+                if (startsWithDot) {
+                    const result = this.readFloatOrSci(i, line);
+                    if (result) {
+                        tokens.push({ type: TokenType.NumberLiteral, value: result.value });
+                        i = result.end;
+                        continue;
                     }
                 }
-                tokens.push({ type: TokenType.Number, value: num });
+
+                // 0x/0b/0o 前缀 → 整数 Number（不可能有科学计数法）
+                if (ch === '0' && i + 1 < line.length) {
+                    const next = line[i + 1];
+                    if (next === 'x' || next === 'X') {
+                        let num = '0x';
+                        i += 2;
+                        while (i < line.length && /[0-9a-fA-F]/.test(line[i])) {
+                            num += line[i];
+                            i++;
+                        }
+                        tokens.push({ type: TokenType.Number, value: num });
+                        continue;
+                    }
+                    if (next === 'b' || next === 'B') {
+                        let num = '0b';
+                        i += 2;
+                        while (i < line.length && /[01]/.test(line[i])) {
+                            num += line[i];
+                            i++;
+                        }
+                        tokens.push({ type: TokenType.Number, value: num });
+                        continue;
+                    }
+                    if (next === 'o' || next === 'O') {
+                        let num = '0o';
+                        i += 2;
+                        while (i < line.length && /[0-7]/.test(line[i])) {
+                            num += line[i];
+                            i++;
+                        }
+                        tokens.push({ type: TokenType.Number, value: num });
+                        continue;
+                    }
+                }
+
+                // 一般数字：尝试读取包含科学计数法和浮点数
+                const result = this.readNumberOrSci(i, line);
+                if (result.type === TokenType.NumberLiteral) {
+                    tokens.push({ type: TokenType.NumberLiteral, value: result.value });
+                } else {
+                    tokens.push({ type: TokenType.Number, value: result.value });
+                }
+                i = result.end;
                 continue;
             }
 
@@ -292,7 +288,6 @@ export class Tokenizer {
                     pct += '%';
                     i++;
                 }
-                // 百分号后跟字母 => 预处理指令
                 if (i < line.length && isAlpha(line[i])) {
                     while (i < line.length && isAlphanumeric(line[i])) {
                         pct += line[i];
@@ -304,10 +299,8 @@ export class Tokenizer {
             }
 
             // --- 单词（标识符、指令、寄存器、标签等） ---
-            // 允许以字母、下划线、点号、@、? 开头
             if (isAlpha(ch) || ch === '.' || ch === '@' || ch === '?') {
                 let word = '';
-                // NASM 标识符允许的字符范围
                 while (i < line.length && /[a-zA-Z0-9_.$?#@]/.test(line[i])) {
                     word += line[i];
                     i++;
@@ -322,5 +315,142 @@ export class Tokenizer {
         }
 
         return tokens;
+    }
+
+    /**
+     * 从当前位置读取数字（可能为浮点数或科学计数法）
+     *
+     * 支持格式：
+     *   - 123       普通整数
+     *   - 123.456   浮点数
+     *   - 1e-6      科学计数法
+     *   - 2.5e+8    科学计数法浮点
+     *   - 123h      十六进制后缀
+     *
+     * @param start - 起始位置（指向第一个数字字符）
+     * @param line - 当前行文本
+     * @returns 解析结果（类型、值、结束位置）
+     */
+    private readNumberOrSci(
+        start: number,
+        line: string
+    ): { type: TokenType; value: string; end: number } {
+        let i = start;
+        let num = '';
+
+        // 读取整数部分
+        while (i < line.length && isDigit(line[i])) {
+            num += line[i];
+            i++;
+        }
+
+        let isFloat = false;
+
+        // 检查小数点（但排除后面是 'e' 的情况）
+        if (i < line.length && line[i] === '.') {
+            // 保存状态，尝试读小数
+            const dotPos = i;
+            i++;
+            if (i < line.length && isDigit(line[i])) {
+                num += '.';
+                isFloat = true;
+                while (i < line.length && isDigit(line[i])) {
+                    num += line[i];
+                    i++;
+                }
+            } else {
+                // 小数点后没有数字 → 这不是浮点数，回退
+                i = dotPos;
+                // 对于纯整数，继续检查后缀
+            }
+        }
+
+        // 检查科学计数法 e/E
+        const sciSave = i;
+        if (i < line.length && (line[i] === 'e' || line[i] === 'E')) {
+            i++;
+            let expSign = '';
+            if (i < line.length && (line[i] === '+' || line[i] === '-')) {
+                expSign = line[i];
+                i++;
+            }
+            if (i < line.length && isDigit(line[i])) {
+                // 确认是科学计数法
+                let sciNum = num + (line[sciSave] === 'e' ? 'e' : 'E') + expSign;
+                while (i < line.length && isDigit(line[i])) {
+                    sciNum += line[i];
+                    i++;
+                }
+                return { type: TokenType.NumberLiteral, value: sciNum, end: i };
+            } else {
+                // e/E 后面没有有效指数 → 回退
+                i = sciSave;
+            }
+        }
+
+        if (isFloat) {
+            // 已经是浮点数但没有 e → NumberLiteral
+            return { type: TokenType.NumberLiteral, value: num, end: i };
+        }
+
+        // 纯整数 - 检查 NASM 基数后缀
+        if (i < line.length && /[hHoOqQbBdD]/.test(line[i])) {
+            const suffix = line[i];
+            if (
+                (suffix === 'h' || suffix === 'H') ||
+                (suffix === 'o' || suffix === 'O') ||
+                (suffix === 'q' || suffix === 'Q') ||
+                (suffix === 'b' || suffix === 'B') ||
+                (suffix === 'd' || suffix === 'D')
+            ) {
+                num += line[i];
+                i++;
+            }
+        }
+
+        return { type: TokenType.Number, value: num, end: i };
+    }
+
+    /**
+     * 读取以小数点开头的浮点数/科学计数法（如 .5e-3）
+     */
+    private readFloatOrSci(
+        start: number,
+        line: string
+    ): { value: string; end: number } | null {
+        let i = start;
+
+        if (line[i] !== '.') return null;
+        i++;
+
+        if (i >= line.length || !isDigit(line[i])) return null;
+
+        let num = '.';
+        while (i < line.length && isDigit(line[i])) {
+            num += line[i];
+            i++;
+        }
+
+        // 检查科学计数法
+        const sciSave = i;
+        if (i < line.length && (line[i] === 'e' || line[i] === 'E')) {
+            i++;
+            let expSign = '';
+            if (i < line.length && (line[i] === '+' || line[i] === '-')) {
+                expSign = line[i];
+                i++;
+            }
+            if (i < line.length && isDigit(line[i])) {
+                let sciNum = num + (line[sciSave] === 'e' ? 'e' : 'E') + expSign;
+                while (i < line.length && isDigit(line[i])) {
+                    sciNum += line[i];
+                    i++;
+                }
+                return { value: sciNum, end: i };
+            }
+            i = sciSave;
+        }
+
+        return { value: num, end: i };
     }
 }
